@@ -1,6 +1,6 @@
 #include "HotForms.h"
 
-int Main() {
+int main() {
 	
 	static const uint bufferWidth = 81;
 	static const uint bufferHeight = 23;
@@ -22,7 +22,6 @@ int Main() {
 
 	while (1) {
 
-		WriteConsoleOutput(CAhout, CA->Buffer, CA->dwBufferSize, CA->dwBufferCoord, &CA->lpWriteRegion);
 		Sleep(1);
 	}
 
