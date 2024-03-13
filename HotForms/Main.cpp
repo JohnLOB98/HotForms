@@ -1,5 +1,32 @@
 #include "HotForms.h"
 
+
+int Execution(MainWindow Wnd) {
+
+		while (1) {
+
+		Wnd.Input();
+		Wnd.Update();
+		Wnd.Render();
+		
+	}
+
+}
+
+//int Execution(Window Wnd) {
+//
+//	//Wnd.Initialize(CA);
+//
+//	while (1) {
+//
+//		Wnd:Input();
+//		Wnd.Update();
+//		Wnd.Render();
+//		
+//	}
+//
+//}
+
 int main() {
 	
 	static const uint bufferWidth = 81;
@@ -20,10 +47,14 @@ int main() {
 
 	ConsoleApplication* CA = new ConsoleApplication(buffer, hwnd, hout, dwBufferSize, dwBufferCoord, lpWriteRegion);
 
-	while (1) {
+	MainWindow mainWnd = MainWindow(CA);
 
-		Sleep(1);
-	}
+	Execution(mainWnd);
+
+	//while (1) {
+
+	//	Sleep(1);
+	//}
 
 	return 0;
 }

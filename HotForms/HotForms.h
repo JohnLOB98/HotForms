@@ -13,30 +13,8 @@ enum Colors {
 };
 
 typedef struct _Rectangle {
-	//public	
 	uint x, y, width, height;
-	//_Rectangle(uint _x, uint _y, uint _width, uint _height) : x(_x), y(_y), width(_width), height(_height) {}
-
-	//~_Rectangle() {
-	//	std::cout << "The rectangle has been destroyed.";
-	//}
-
-
-	//uint GetX() { return x; }
-	//uint GetY() { return y; }
-	//uint GetWidth() { return width; }
-	//uint GetHeight() { return height; }
-
-	//void SetX(const uint& value) { x = value; }
-	//void SetY(const uint& value) { y = value; }
-	//void SetWidth(const uint& value) { width = value; }
-	//void SetHeight(const uint& value) { height = value; }
-
-
-
-//private:
-	//uint x, y, width, height;
-} Rectangle;
+} Rect;
 
 class ConsoleApplication {
 public:
@@ -77,7 +55,6 @@ public:
 
 		this->ClearScreen();
 	}
-	//SetName(_name);
 
 	CHAR_INFO* GetBuffer() { return buffer; }
 	HWND GetHwnd() { return hwnd; }
@@ -99,7 +76,7 @@ public:
 
 	void DrawCharW(int CoordX, int CoordY, wchar_t c, ubyte Color) {
 
-		uint y = dwBufferSize.Y - CoordY - 1;
+		uint y = CoordY;
 		uint i = y * dwBufferSize.X + CoordX;
 
 		buffer[i].Char.UnicodeChar = c;
@@ -116,49 +93,49 @@ private:
 	CHAR_INFO* buffer;
 	HWND hwnd;
 	HANDLE hout;
-	COORD dwBufferSize;
-	COORD dwBufferCoord;
+	COORD dwBufferSize, dwBufferCoord;
 	SMALL_RECT lpWriteRegion;
-	// 
-	//HWND hwnd;
-	//HANDLE hout;
-	//COORD dwBufferSize = { bufferWidth, bufferHeight };
-	//COORD dwBufferCoord = { 0, 0 };
-	//SMALL_RECT lpWriteRegion = { 0, 0, bufferWidth - 1, bufferHeight - 1 };
 };
 
 class Control {
 public:
 
-	Control() {}
-	Control(const string& _name, const Rectangle& _rectangle) : name(_name), rectangle(_rectangle) {}
-
+	Control() : rectangle({ 1, 1, 10, 3}), name("button1"), tag(""), fontColor(White), 
+				backgroundColor(White) {}
+	Control(const string& _name, const Rect& _rectangle) : 
+		rectangle(_rectangle), name(_name), tag(""), fontColor(White), backgroundColor(White){}
 	~Control() {
 		std::cout << "This control was destroyed";
 	}
+
+	//template <typename F>
+	//virtual void OnClick(bool* key, F funtion) {
+	//	int x = 0;
+	//}
 
 	virtual void DrawControl(ConsoleApplication* CA) {
 		std::cout << "Draw control base.";
 	}
 
-	Rectangle GetRectangle() { return rectangle; }
+	Rect GetRectangle() { return rectangle; }
 	string GetName() { return name; }
 	string GetTag() { return tag; }
 	byte GetFontColor() { return fontColor; }
 	byte GetBackgroundColor() { return backgroundColor; }
 
 
-	//Passing parameters by reference does not create a copy, like the by value does.If objects of type T are huge 
-	//-- expensive to copy -- then passing by reference is more efficient.
+	// Passing parameters by reference does not create a copy, like the by value does. If
+	// objects of type T are huge -- expensive to copy -- then passing by reference is 
+	// more efficient.
 	void SetName(const string& value) { name = value; }
 	void SetTag(const string& value) { name = value; }
 	void SetFontColor(const byte& value) { fontColor = value; }
 	void SetBackgroundColor(const byte& value) { backgroundColor = value; }
-	void SetRectangle(const Rectangle& value) { rectangle = value; }
+	void SetRectangle(const Rect& value) { rectangle = value; }
 
 private:
 
-	Rectangle rectangle;
+	Rect rectangle;
 	string name, tag;
 	byte fontColor, backgroundColor;
 };
@@ -168,7 +145,7 @@ private:
 
 class Button : public Control {
 public:
-	Button(string _name, Rectangle _rectangle) : Control(_name, _rectangle), Text(L"hola") {}
+	Button(string _name, Rect _rectangle) : Control(_name, _rectangle), Text(L"hola") {}
 
 
 	wstring GetText() { return Text; }
@@ -177,7 +154,7 @@ public:
 
 	virtual void DrawControl(ConsoleApplication* CA) override {
 
-		Rectangle r = this->GetRectangle();
+		Rect r = this->GetRectangle();
 		int x = r.x;
 		int y = r.y;
 		int Width = r.width;
@@ -196,9 +173,9 @@ public:
 		for (int i = 0; i < Width - 2; ++i) s2 += L'─';
 		s2 += L"┘";
 
-		CA->DrawStringW(this->GetRectangle().x, this->GetRectangle().y, s0, this->GetFontColor());
-		CA->DrawStringW(this->GetRectangle().x, this->GetRectangle().y, s1, this->GetFontColor());
-		CA->DrawStringW(this->GetRectangle().x, this->GetRectangle().y, s2, this->GetFontColor());
+		CA->DrawStringW(GetRectangle().x, GetRectangle().y, s0, GetFontColor());
+		CA->DrawStringW(GetRectangle().x, GetRectangle().y + 1, s1, GetFontColor());
+		CA->DrawStringW(GetRectangle().x, GetRectangle().y + 2, s2, GetFontColor());
 	}
 
 private:
@@ -220,12 +197,12 @@ private:
 class Window : Control {
 public:
 
-	virtual void Initialize() {
+	virtual void Initialize(ConsoleApplication* _CA) {
 		std::cout << "Initilize Base Window.";
 	}
 	virtual void Input() {}
 	virtual void Update() {}
-	virtual void Render(ConsoleApplication* CA) {}
+	virtual void Render() {}
 
 private:
 };
@@ -235,14 +212,22 @@ private:
 class MainWindow : Window {
 public:
 
-	virtual void Initialize() override {
+	MainWindow(ConsoleApplication* _CA) : CA(_CA) {};
+
+	virtual void Initialize(ConsoleApplication* _CA) override {
 		std::cout << "Initilize Main Window.";
+		CA = _CA;
+			
 	}
 	virtual void Input() override {}
 	virtual void Update() override {
+		CA->ClearScreen();
+
 		btnTest->DrawControl(CA);
 	}
-	virtual void Render(ConsoleApplication* CA) override {}
+	virtual void Render() override {
+		WriteConsoleOutput(CA->GetHout(), CA->GetBuffer(), CA->GetdwBufferSize(), CA->GetdwBufferCoord(), CA->GetlpWriteRegion());
+	}
 private:
 	ConsoleApplication* CA;
 	Button* btnTest = new Button("btnTest", { 1, 1, 10, 3 });
