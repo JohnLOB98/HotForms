@@ -1,4 +1,5 @@
-﻿#include <iostream>
+﻿#include <functional>
+#include <iostream>
 #include <windows.h>
 #include <string>
 
@@ -105,16 +106,23 @@ public:
 	Control(const string& _name, const Rect& _rectangle) : 
 		rectangle(_rectangle), name(_name), tag(""), fontColor(White), backgroundColor(White){}
 	~Control() {
-		std::cout << "This control was destroyed";
+		std::cout << "Destructor Base Control";
 	}
 
-	//template <typename F>
-	//virtual void OnClick(bool* key, F funtion) {
-	//	int x = 0;
+	//virtual void OnClick(bool* key, void *func) {
+	//	std::cout << "OnClick Base Control.";
 	//}
-
 	virtual void DrawControl(ConsoleApplication* CA) {
-		std::cout << "Draw control base.";
+		std::cout << "DrawControl Base Control.";
+	}
+	
+	bool GetKeyUp(int VK, bool* Key) {
+		if (GetKeyState(VK) < 0) *Key = true;
+		else if (*Key) {
+			*Key = false;
+			return true;
+		}
+		return false;
 	}
 
 	Rect GetRectangle() { return rectangle; }
@@ -178,6 +186,31 @@ public:
 		CA->DrawStringW(GetRectangle().x, GetRectangle().y + 2, s2, GetFontColor());
 	}
 
+	// TRIGGERS
+	template<typename F>
+	void OnClick(bool* key, F function) {
+
+		CONSOLE_SELECTION_INFO PCSI = {};
+		COORD Anchor = PCSI.dwSelectionAnchor;
+		COORD C = GetConsoleSelectionInfo(&PCSI) ? COORD{ Anchor.X, Anchor.Y } : COORD{ 0,0 };
+			
+		Rect r = GetRectangle();
+		uint btnX = r.x;
+		uint btnY = r.y;
+		uint btnWidth = r.width;
+		uint btnHeight = r.height;
+
+		//bool conditions [] = { C.X >= btnX, C.X <= btnX + btnWidth,
+		//					   C.Y >= btnY, C.Y <= btnY + btnHeight}
+
+		if (C.X >= btnX && C.X <= btnX + btnWidth &&
+			C.Y >= btnY && C.Y <= btnY + btnHeight &&
+			GetKeyUp(FROM_LEFT_1ST_BUTTON_PRESSED, key)) {
+
+			function();
+		}
+	}
+
 private:
 	wstring Text;
 };
@@ -217,18 +250,45 @@ public:
 	virtual void Initialize(ConsoleApplication* _CA) override {
 		std::cout << "Initilize Main Window.";
 		CA = _CA;
+		*KeyLeftMouse = false;
+
 			
 	}
-	virtual void Input() override {}
+	virtual void Input() override {
+		
+
+		//KeyLeftMouse(vKey);	
+
+		// USE LAMBDA EXPRESSION 
+		btnTest->OnClick(KeyLeftMouse, [this]() {
+			std::cout << R"(Hello World. \n)";
+			}
+		);
+
+
+	}
 	virtual void Update() override {
 		CA->ClearScreen();
 
 		btnTest->DrawControl(CA);
 	}
 	virtual void Render() override {
-		WriteConsoleOutput(CA->GetHout(), CA->GetBuffer(), CA->GetdwBufferSize(), CA->GetdwBufferCoord(), CA->GetlpWriteRegion());
+		WriteConsoleOutput(CA->GetHout(), 
+						   CA->GetBuffer(), 
+						   CA->GetdwBufferSize(),
+						   CA->GetdwBufferCoord(), 
+						   CA->GetlpWriteRegion());
 	}
+
+
+	// TRIGGERS FUNCTION
+	//void OnClick_btnTest() {
+	//	std::cout << "Hello Button.";
+	//}
+
 private:
 	ConsoleApplication* CA;
 	Button* btnTest = new Button("btnTest", { 1, 1, 10, 3 });
+	bool* KeyLeftMouse = new bool;
 };
+
