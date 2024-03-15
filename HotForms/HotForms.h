@@ -202,10 +202,10 @@ public:
 
 		//bool conditions [] = { C.X >= btnX, C.X <= btnX + btnWidth,
 		//					   C.Y >= btnY, C.Y <= btnY + btnHeight}
-
+		bool flag = GetKeyUp(FROM_LEFT_1ST_BUTTON_PRESSED, key);
 		if (C.X >= btnX && C.X <= btnX + btnWidth &&
 			C.Y >= btnY && C.Y <= btnY + btnHeight &&
-			GetKeyUp(FROM_LEFT_1ST_BUTTON_PRESSED, key)) {
+			flag) {
 
 			function();
 		}
